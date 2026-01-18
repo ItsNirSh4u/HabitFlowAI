@@ -1,0 +1,73 @@
+### HabitFlowAI API Test Suite
+### Use REST Client extension in VS Code to run these requests
+### Remember: Get a fresh token from login/register and update the Authorization header
+
+@baseUrl = http://localhost:5000
+@email = test@example.com
+@password = TestPassword123!
+
+### ===== AUTHENTICATION TESTS =====
+
+### 1. Register new user
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Login user (use the token from register response)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### ===== CLASSIFICATION TEST =====
+
+### 3. Classify user persona (PROTECTED - requires valid JWT token)
+### IMPORTANT: Copy the "token" value from register/login response and paste it below after "Bearer "
+POST {{baseUrl}}/api/classify
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OTZjZjFlNWFjNjg1NDdmNjZkMjFiMWMiLCJpYXQiOjE3Njg3NTE4NDgsImV4cCI6MTc2ODgzODI0OH0.A1hKb1y27A-tvw0TS0X7wNZQropTsmenupe2qlCUCc8
+
+{
+  "goalText": "I want to build a habit of reading 30 minutes daily to improve my knowledge",
+  "quizAnswers": [
+    {
+      "question": "How do you respond to challenges?",
+      "answer": "I embrace them and push myself harder"
+    },
+    {
+      "question": "What motivates you most?",
+      "answer": "Achieving measurable results"
+    },
+    {
+      "question": "How do you prefer to work?",
+      "answer": "With clear deadlines and accountability"
+    }
+  ]
+}
+
+### ===== ERROR TESTS =====
+
+### Test 4: Invalid login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "wrongpassword"
+}
+
+### Test 5: Protected route without token (should fail with 401)
+POST {{baseUrl}}/api/classify
+Content-Type: application/json
+
+{
+  "goalText": "Test",
+  "quizAnswers": []
+}
