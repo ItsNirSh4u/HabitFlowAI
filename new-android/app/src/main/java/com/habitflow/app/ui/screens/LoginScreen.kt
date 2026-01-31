@@ -26,8 +26,16 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isRegistering by remember { mutableStateOf(false) }
+    var shouldNavigate by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+
+    // Handle navigation via LaunchedEffect to ensure it's on the main thread
+    LaunchedEffect(shouldNavigate) {
+        if (shouldNavigate) {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -100,14 +108,17 @@ fun LoginScreen(
 
                     try {
                         if (isRegistering) {
-                            // Mock successful registration - save fake auth data
+                            // Skip API call entirely - just use mock data
                             val fakeUserId = java.util.UUID.randomUUID().toString()
                             tokenManager.saveAuthData(
                                 token = "mock_token_${System.currentTimeMillis()}",
                                 userId = fakeUserId,
                                 email = email
                             )
-                            onLoginSuccess()
+                            // Set loading false before navigation
+                            isLoading = false
+                            shouldNavigate = true
+                            return@launch
                         } else {
                             val response = RetrofitClient.apiService.login(LoginRequest(email, password))
                             if (response.isSuccessful && response.body() != null) {
@@ -117,16 +128,17 @@ fun LoginScreen(
                                     userId = authResponse.user.id,
                                     email = authResponse.user.email
                                 )
-                                onLoginSuccess()
+                                isLoading = false
+                                shouldNavigate = true
+                                return@launch
                             } else {
                                 errorMessage = response.errorBody()?.string() ?: "Authentication failed"
                             }
                         }
                     } catch (e: Exception) {
                         errorMessage = e.message ?: "An error occurred"
-                    } finally {
-                        isLoading = false
                     }
+                    isLoading = false
                 }
             },
             modifier = Modifier.fillMaxWidth(),

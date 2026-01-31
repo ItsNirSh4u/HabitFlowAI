@@ -55,6 +55,7 @@ router.post('/persona/determine', async (req: Request, res: Response) => {
  */
 router.get('/persona/all', (_req: Request, res: Response) => {
   try {
+    console.log('Fetching all personas');
     const personas = PersonaService.getAllPersonas();
     
     const response: PersonasResponse = {

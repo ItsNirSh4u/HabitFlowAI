@@ -28,8 +28,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const startTime = Date.now();
+  
+  // Log when response finishes
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  
   next();
 });
 
